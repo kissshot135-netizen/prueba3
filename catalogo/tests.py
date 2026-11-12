@@ -28,9 +28,24 @@ class CatalogoTests(TestCase):
         self.productos_iniciales = Producto.objects.count()
 
     def test_inicio_y_catalogo_cargan(self):
-        self.assertEqual(self.client.get(reverse('inicio')).status_code, 200)
+        respuesta_inicio = self.client.get(reverse('inicio'))
+        self.assertEqual(respuesta_inicio.status_code, 200)
+        self.assertContains(respuesta_inicio, 'La Ferretería de Ayer y Hoy')
+        self.assertContains(
+            respuesta_inicio,
+            'catalogo/videos/4294436-uhd_3840_2160_25fps.mp4',
+        )
+        self.assertContains(
+            respuesta_inicio,
+            'catalogo/videos/4292300-uhd_3840_2160_25fps.mp4',
+        )
+        self.assertContains(
+            respuesta_inicio,
+            'class="site-background-video" muted playsinline loop',
+        )
         respuesta = self.client.get(reverse('lista_productos'))
         self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'La Ferretería de Ayer y Hoy')
         self.assertContains(respuesta, 'Martillo')
         self.assertContains(respuesta, 'Martillo de acero 16 oz')
         self.assertContains(
@@ -40,6 +55,33 @@ class CatalogoTests(TestCase):
         self.assertContains(respuesta, 'row-cols-1')
         self.assertContains(respuesta, '/static/catalogo/imagen-no-disponible.svg')
         self.assertContains(respuesta, 'onerror=')
+
+    def test_inicio_muestra_productos_y_colecciones_en_carruseles(self):
+        self.producto.stock = 999
+        self.producto.save(update_fields=['stock'])
+        Coleccion.objects.create(
+            nombre='Proyectos de temporada',
+            descripcion='Ideas para renovar tu espacio',
+        )
+
+        respuesta = self.client.get(reverse('inicio'))
+
+        self.assertContains(respuesta, 'id="productos-destacados"')
+        self.assertContains(respuesta, 'id="hero-productos"')
+        self.assertContains(respuesta, 'data-bs-slide="next"')
+        self.assertContains(respuesta, 'id="colecciones-destacadas"')
+        self.assertContains(respuesta, 'Martillo')
+        self.assertContains(respuesta, 'Proyectos de temporada')
+        self.assertContains(respuesta, 'Ir a contacto')
+
+    def test_carrusel_de_colecciones_sin_datos_no_muestra_controles(self):
+        respuesta = self.client.get(reverse('inicio'))
+
+        self.assertContains(
+            respuesta,
+            'Estamos preparando colecciones para inspirar tus proyectos.',
+        )
+        self.assertNotContains(respuesta, 'Controles de colecciones')
 
     def test_catalogo_muestra_imagen_del_producto_si_esta_disponible(self):
         self.producto.imagen = 'https://example.com/martillo.jpg'

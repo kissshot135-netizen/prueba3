@@ -20,7 +20,22 @@ from .models import Coleccion, Compra, Producto
 
 
 def inicio(request):
-    return render(request, 'catalogo/inicio.html')
+    productos_destacados = (
+        Producto.objects.filter(stock__gt=0)
+        .order_by('-stock', 'nombre')[:12]
+    )
+    colecciones_destacadas = (
+        Coleccion.objects.prefetch_related('productos')
+        .order_by('nombre')[:12]
+    )
+    return render(
+        request,
+        'catalogo/inicio.html',
+        {
+            'productos_destacados': productos_destacados,
+            'colecciones_destacadas': colecciones_destacadas,
+        },
+    )
 
 
 def lista_productos(request):

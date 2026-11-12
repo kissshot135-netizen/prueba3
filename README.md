@@ -28,6 +28,7 @@ vacías de productos existentes sin reemplazar valores personalizados.
 ## Funcionalidades web
 
 - Catálogo público y CRUD de productos para administradores en `/gestionar/`.
+- Portada con carruseles de productos y colecciones, pie de página y videos de fondo en bucle.
 - Colecciones de productos en `/colecciones/`; su CRUD está en
   `/gestionar/colecciones/`.
 - Dos reportes privados para administradores en `/gestionar/reportes/`:
@@ -83,6 +84,6 @@ python manage.py test catalogo
 
 ## Trazabilidad de etapas y uso de IA
 
-El trabajo se organiza en cuatro commits: modelos y formularios, funcionalidades
-web, carrito de sesión y API/documentación. El registro de consultas y revisión
-está en [uso_ia.md](uso_ia.md).
+El trabajo se organiza en cinco commits: modelos y formularios, funcionalidades
+web, carrito de sesión, API/documentación y renovación visual del sitio. El
+registro de consultas y revisión está en [uso_ia.md](uso_ia.md).

@@ -1,17 +1,133 @@
 {% extends 'catalogo/base.html' %}
+{% load static %}
 
-{% block title %}Inicio | Ferretería{% endblock %}
+{% block title %}Inicio | La Ferretería de Ayer y Hoy{% endblock %}
 
 {% block content %}
-<section class="panel">
-    <h1>Bienvenido a la ferretería</h1>
-    <p>Encuentra los productos que necesitas y compra de forma sencilla.</p>
-    <a class="button" href="{% url 'lista_productos' %}">Ir al catálogo</a>
-    {% if not user.is_authenticated %}
-        <a class="button" href="{% url 'ingreso' %}">Ingresar</a>
-        <a class="button" href="{% url 'registro' %}">Crear cuenta de consumidor</a>
-    {% elif user.is_staff %}
-        <a class="button" href="{% url 'gestionar_productos' %}">Administrar productos</a>
+<section class="home-showcase" aria-labelledby="inicio-titulo">
+    <div class="showcase-lead">
+        <p class="page-kicker mb-2">Herramientas para hacer</p>
+        <h1 id="inicio-titulo">Buenas herramientas. Mejores proyectos.</h1>
+        <p>Una selección confiable para construir, reparar y transformar tus ideas, paso a paso.</p>
+    </div>
+
+    {% if productos_destacados %}
+        <div id="hero-productos" class="carousel slide showcase-carousel" data-bs-touch="true">
+            <div class="carousel-inner">
+                {% for producto in productos_destacados|slice:":3" %}
+                    <article class="carousel-item{% if forloop.first %} active{% endif %}">
+                        <div class="showcase-slide">
+                            <div class="showcase-copy">
+                                <p class="page-kicker mb-2">{{ producto.categoria }}</p>
+                                <h2>{{ producto.nombre }}</h2>
+                                <p>Un compañero confiable para el trabajo bien hecho.</p>
+                                <p class="showcase-price">${{ producto.precio }}</p>
+                                <a class="btn btn-light rounded-pill px-4" href="{% url 'lista_productos' %}">Explorar catálogo</a>
+                            </div>
+                            <div class="showcase-image-frame">
+                                <img
+                                    src="{% if producto.imagen %}{{ producto.imagen }}{% else %}{% static 'catalogo/imagen-no-disponible.svg' %}{% endif %}"
+                                    alt="{{ producto.nombre }}"
+                                    loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                                    decoding="async"
+                                    onerror="this.onerror=null;this.src='{% static 'catalogo/imagen-no-disponible.svg' %}';">
+                                <span class="showcase-image-note">Elegido para tu taller</span>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+            {% if productos_destacados|length > 1 %}
+                <div class="showcase-navigation">
+                    <span class="showcase-index">Selección destacada</span>
+                    <div class="carousel-controls" aria-label="Controles de productos en portada">
+                        <button class="carousel-arrow" type="button" data-bs-target="#hero-productos" data-bs-slide="prev" aria-label="Producto anterior">
+                            <span aria-hidden="true">‹</span>
+                        </button>
+                        <button class="carousel-arrow" type="button" data-bs-target="#hero-productos" data-bs-slide="next" aria-label="Producto siguiente">
+                            <span aria-hidden="true">›</span>
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="showcase-empty mb-0">Estamos preparando una selección para tus próximos proyectos.</p>
+        <a class="btn btn-light rounded-pill px-4 mt-3" href="{% url 'lista_productos' %}">Explorar catálogo</a>
+    {% endif %}
+</section>
+
+<section class="carousel-section" aria-labelledby="productos-destacados-titulo">
+    <div class="carousel-heading">
+        <div>
+            <p class="page-kicker mb-0">Elegidos para ti</p>
+            <h2 id="productos-destacados-titulo">Productos destacados</h2>
+        </div>
+        {% if productos_destacados %}
+            <div class="carousel-controls" aria-label="Controles de productos destacados">
+                <button class="carousel-arrow" type="button" data-carousel-target="productos-destacados" data-direction="previous" aria-label="Productos anteriores">‹</button>
+                <button class="carousel-arrow" type="button" data-carousel-target="productos-destacados" data-direction="next" aria-label="Productos siguientes">›</button>
+            </div>
+        {% endif %}
+    </div>
+    {% if productos_destacados %}
+        <div class="carousel-track product-carousel-track" id="productos-destacados" role="region" aria-label="Productos destacados">
+            {% for producto in productos_destacados %}
+                <article class="card product-card h-100 overflow-hidden">
+                    <img
+                        src="{% if producto.imagen %}{{ producto.imagen }}{% else %}{% static 'catalogo/imagen-no-disponible.svg' %}{% endif %}"
+                        class="card-img-top product-image"
+                        alt="{{ producto.nombre }}"
+                        loading="lazy"
+                        decoding="async"
+                        onerror="this.onerror=null;this.src='{% static 'catalogo/imagen-no-disponible.svg' %}';">
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge rounded-pill text-bg-light align-self-start mb-2">{{ producto.categoria }}</span>
+                        <h3 class="h5 card-title">{{ producto.nombre }}</h3>
+                        <p class="h4 fw-bold product-price">${{ producto.precio }}</p>
+                        <p class="small text-secondary">{{ producto.stock }} unidades disponibles</p>
+                        <form class="mt-auto" method="post" action="{% url 'agregar_al_carrito' producto.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="cantidad" value="1">
+                            <button class="btn btn-primary rounded-pill w-100" type="submit">Agregar al carrito</button>
+                        </form>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="carousel-empty">Pronto encontrarás productos destacados aquí.</p>
+    {% endif %}
+</section>
+
+<section class="carousel-section" aria-labelledby="colecciones-destacadas-titulo">
+    <div class="carousel-heading">
+        <div>
+            <p class="page-kicker readable-label mb-0">Encuentra inspiración</p>
+            <h2 id="colecciones-destacadas-titulo">Colecciones</h2>
+        </div>
+        {% if colecciones_destacadas %}
+            <div class="carousel-controls" aria-label="Controles de colecciones">
+                <button class="carousel-arrow" type="button" data-carousel-target="colecciones-destacadas" data-direction="previous" aria-label="Colecciones anteriores">‹</button>
+                <button class="carousel-arrow" type="button" data-carousel-target="colecciones-destacadas" data-direction="next" aria-label="Colecciones siguientes">›</button>
+            </div>
+        {% endif %}
+    </div>
+    {% if colecciones_destacadas %}
+        <div class="carousel-track collection-carousel-track" id="colecciones-destacadas" role="region" aria-label="Colecciones destacadas">
+            {% for coleccion in colecciones_destacadas %}
+                <article class="card collection-card d-flex flex-column">
+                    <p class="collection-count">{{ coleccion.productos.count }} productos</p>
+                    <h3 class="h4">{{ coleccion.nombre }}</h3>
+                    {% if coleccion.descripcion %}
+                        <p class="text-secondary">{{ coleccion.descripcion }}</p>
+                    {% endif %}
+                    <a class="mt-auto" href="{% url 'lista_colecciones' %}">Explorar colecciones →</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="carousel-empty">Estamos preparando colecciones para inspirar tus proyectos.</p>
     {% endif %}
 </section>
 {% endblock %}
